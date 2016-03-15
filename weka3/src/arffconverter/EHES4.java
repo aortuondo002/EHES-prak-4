@@ -4,11 +4,10 @@ import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.FileReader;
 import java.io.FileWriter;
-import java.sql.Time;
 
 public class EHES4 {
 
-	private static boolean klase;
+	public static final String Vers = "0.2";
 
 	public static void main(String[] args) throws Exception {
 
@@ -30,18 +29,18 @@ public class EHES4 {
 
 		while ((lerroa = br.readLine()) != null) {
 			if (lerroa.startsWith("\"") && !lerroa.startsWith("\"\"")) {
-				
+
 				lerroa = lerroa.substring(1, lerroa.length());
 				String[] atazak = lerroa.split("\",\"");
-				
+
 				if (!atazak[1].equalsIgnoreCase("irrelevant")) {
-					if(atazak[1].equalsIgnoreCase("UNKNOWN")){
-						atazak[1]="?";
+					if (atazak[1].equalsIgnoreCase("UNKNOWN")) {
+						atazak[1] = "?";
 					}
-					bw.write("'"+atazak[4].replace("'", "´")+"'," + atazak[1] +"\n");
+					bw.write("'" + atazak[4].replace("'", "´") + "'," + atazak[1] + "\n");
 
 				}
-				
+
 				bw.flush();
 			}
 		} // while
