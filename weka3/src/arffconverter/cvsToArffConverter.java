@@ -5,7 +5,7 @@ import java.io.BufferedWriter;
 import java.io.FileReader;
 import java.io.FileWriter;
 
-public class EHES4 {
+public class cvsToArffConverter {
 
 	public static final String Vers = "0.2";
 
