@@ -17,12 +17,13 @@ public class EHES4 {
 		FileReader fr = new FileReader(args[0]);
 		BufferedReader br = new BufferedReader(fr);
 
-		bw.write("@RELATION tweetSentiment.dev.csv\n\n");
+		bw.write("@RELATION tweetSentiment\n\n");
 		// bw.write("@ATTRIBUTE Topic string \n");
-		bw.write("@ATTRIBUTE CLASS {neutral,positive,negative}\n");
 		// bw.write("@ATTRIBUTE ID NUMERIC \n");
 		// bw.write("@ATTRIBUTE timestamp DATE \"HH:mm:ss\" \n");
 		bw.write("@ATTRIBUTE Text string \n\n");
+		bw.write("@ATTRIBUTE CLASS {neutral,positive,negative}\n");
+
 		bw.write("@DATA\n");
 
 		String lerroa = br.readLine();
@@ -37,7 +38,7 @@ public class EHES4 {
 					if (atazak[1].equalsIgnoreCase("UNKNOWN")) {
 						atazak[1] = "?";
 					}
-					bw.write("'" + atazak[4].replace("'", "´") + "'," + atazak[1] + "\n");
+					bw.write("'"+atazak[4].replace("'", "´") + "'," + atazak[1] + "\n");
 
 				}
 

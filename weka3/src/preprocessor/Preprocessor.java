@@ -1,14 +1,12 @@
 package preprocessor;
 
-import java.awt.Dimension;
 import java.io.BufferedReader;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 
-import weka.core.Attribute;
+import weka.attributeSelection.InfoGainAttributeEval;
+import weka.attributeSelection.Ranker;
 import weka.core.Instances;
-import weka.core.tokenizers.WordTokenizer;
 import weka.filters.Filter;
 import weka.filters.unsupervised.attribute.StringToWordVector;
 
@@ -27,16 +25,10 @@ public class Preprocessor {
 	
 	public Instances getDataInstances(String path) throws IOException {
 		BufferedReader br = new BufferedReader(new FileReader(path));
-		// Load the instances
 		Instances rawData = null;
 		rawData = new Instances(br);
-		// Close the file
 		br.close();
-		// Specify which attribute will be used as the class: the last one, in
-		// this case
 		rawData.setClassIndex(rawData.numAttributes() - 1);
-		// data.setClass(data.attribute("class"));
-
 		return rawData;
 	}
 	
@@ -49,5 +41,22 @@ public class Preprocessor {
 		Instances dataToWordVector=Filter.useFilter(rawData, stringToWordVectorFilter);
 		return dataToWordVector;
 	}
+	
+	public int[] AttributeEvaluator(Instances data) throws Exception{
+		InfoGainAttributeEval igae=new InfoGainAttributeEval();
+		Ranker rank= new Ranker();
+		String[] options= new String[2];
+		options[0]="-N -1";
+		options[1]="-T "+Long.toString(Long.MIN_VALUE)+"";
+		rank.setOptions(options);
+		return rank.search(igae, data);
+		
+		
+		
+		
+		
+	}
+	
+	
 
 }
