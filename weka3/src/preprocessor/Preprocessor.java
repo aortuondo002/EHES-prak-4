@@ -1,7 +1,9 @@
 package preprocessor;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 
 import weka.attributeSelection.InfoGainAttributeEval;
@@ -49,14 +51,12 @@ public class Preprocessor {
 		options[0]="-N -1";
 		options[1]="-T "+Long.toString(Long.MIN_VALUE)+"";
 		rank.setOptions(options);
-		return rank.search(igae, data);
-		
-		
-		
-		
-		
+		return rank.search(igae, data);		
 	}
 	
+	public void writeArff(String path,Instances data) throws IOException{
+		
+	}
 	
 
 }

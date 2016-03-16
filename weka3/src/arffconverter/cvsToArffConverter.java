@@ -38,10 +38,8 @@ public class cvsToArffConverter {
 					if (atazak[1].equalsIgnoreCase("UNKNOWN")) {
 						atazak[1] = "?";
 					}
-					bw.write("'"+atazak[4].replace("'", "´") + "'," + atazak[1] + "\n");
-
+					bw.write("'" + atazak[4].replace("'", "´") + "'," + atazak[1] + "\n");
 				}
-
 				bw.flush();
 			}
 		} // while
