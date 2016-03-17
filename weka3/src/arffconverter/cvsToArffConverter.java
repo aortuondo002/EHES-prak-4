@@ -4,17 +4,18 @@ import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.FileReader;
 import java.io.FileWriter;
+import java.io.IOException;
 
 public class cvsToArffConverter {
 
 	public static final String Vers = "0.2";
-
-	public static void main(String[] args) throws Exception {
-
-		FileWriter fw = new FileWriter(args[0] + ".arff");
+		
+	
+	public void converter(String arg) throws IOException{
+		FileWriter fw = new FileWriter(arg + ".arff");
 		BufferedWriter bw = new BufferedWriter(fw);
 
-		FileReader fr = new FileReader(args[0]);
+		FileReader fr = new FileReader(arg);
 		BufferedReader br = new BufferedReader(fr);
 
 		bw.write("@RELATION tweetSentiment\n\n");
@@ -47,3 +48,4 @@ public class cvsToArffConverter {
 		br.close();
 	}
 }
+
