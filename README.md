@@ -1,5 +1,5 @@
 # EHES-prak-4
-  Reamdme hau proiektua urrera joan ahala beteko da
+  Readme hau proiektua aurrera joan ahala beteko da
   
   
   Beharrezko liburutegi/dependentziak:
