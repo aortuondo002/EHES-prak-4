@@ -18,10 +18,10 @@ public class mainBOW {
 			Preprocessor PP=Preprocessor.getPreprocessor();
 			String of=PP.converter(args[0]);
 			Instances berria=PP.stringToWordVectorFilter(PP.getDataInstances(of));
-			berria= PP.filterAtributes(berria);
+			Instances filtratua= PP.filterAtributes(berria);
 			ArffSaver arff= new ArffSaver();
 			arff.setFile(new File(args[1]));
-			arff.setInstances(berria);
+			arff.setInstances(filtratua);
 			arff.writeBatch();
 		}
 }
