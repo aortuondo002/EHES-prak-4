@@ -14,6 +14,7 @@ import weka.core.Attribute;
 import weka.core.Instances;
 import weka.filters.Filter;
 import weka.filters.unsupervised.attribute.StringToWordVector;
+import weka.filters.unsupervised.instance.SparseToNonSparse;
 
 public class Preprocessor {
 
@@ -48,7 +49,13 @@ public class Preprocessor {
 		return dataToWordVector;
 	}
 
-
+	public Instances quitSparseValues(Instances Data) throws Exception{
+		SparseToNonSparse filter= new SparseToNonSparse();
+		filter.setInputFormat(Data);
+		Filter.useFilter(Data, filter);
+		return Data;
+	}
+	
 	public Instances filterAtributes(Instances data) throws Exception{
 	weka.filters.supervised.attribute.AttributeSelection filter = new weka.filters.supervised.attribute.AttributeSelection();
 	InfoGainAttributeEval eval= new InfoGainAttributeEval();
@@ -58,9 +65,15 @@ public class Preprocessor {
 	filter.setInputFormat(data);
 	Instances filtered= Filter.useFilter(data, filter);
 	 System.out.println(filtered);
+	 System.out.println();
 	 return filtered;
 	}
-	
+	/**Metodo honek csv fitxategia arff fitxategira bihurtzen du
+	 * 
+	 * @param arg
+	 * @return code(@String) path-a
+	 * @throws IOException
+	 */
 	public String converter(String arg) throws IOException {
 		String outputFile= arg + ".arff";
 		FileWriter fw = new FileWriter(outputFile);
@@ -70,12 +83,8 @@ public class Preprocessor {
 		BufferedReader br = new BufferedReader(fr);
 
 		bw.write("@RELATION tweetSentiment\n\n");
-		// bw.write("@ATTRIBUTE Topic string \n");
-		// bw.write("@ATTRIBUTE ID NUMERIC \n");
-		// bw.write("@ATTRIBUTE timestamp DATE \"HH:mm:ss\" \n");
 		bw.write("@ATTRIBUTE Text string \n\n");
-		bw.write("@ATTRIBUTE CLASS {neutral,positive,negative}\n");
-
+		bw.write("@ATTRIBUTE Klasea {neutral,positive,negative}\n");
 		bw.write("@DATA\n");
 
 		String lerroa = br.readLine();
