@@ -8,7 +8,7 @@ import java.io.IOException;
 
 public class cvsToArffConverter {
 
-	public static final String Vers = "0.2";
+	public static final String Vers = "0.4";
 		
 	
 	public void converter(String arg) throws IOException{

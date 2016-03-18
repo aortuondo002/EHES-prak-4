@@ -1,13 +1,16 @@
 package preprocessor;
 
+import java.beans.FeatureDescriptor;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 
+import weka.attributeSelection.AttributeSelection;
 import weka.attributeSelection.InfoGainAttributeEval;
 import weka.attributeSelection.Ranker;
+import weka.core.Attribute;
 import weka.core.Instances;
 import weka.filters.Filter;
 import weka.filters.unsupervised.attribute.StringToWordVector;
@@ -35,7 +38,7 @@ public class Preprocessor {
 		return rawData;
 	}
 
-	public Instances stringToWordVector(Instances rawData) throws Exception {
+	public Instances stringToWordVectorFilter(Instances rawData) throws Exception {
 		StringToWordVector stringToWordVectorFilter = new StringToWordVector();
 		stringToWordVectorFilter.setInputFormat(rawData);
 		stringToWordVectorFilter.setWordsToKeep(4000);
@@ -45,16 +48,19 @@ public class Preprocessor {
 		return dataToWordVector;
 	}
 
-	public int[] AttributeEvaluator(Instances data) throws Exception {
-		InfoGainAttributeEval igae = new InfoGainAttributeEval();
-		Ranker rank = new Ranker();
-		String[] options = new String[2];
-		options[0] = "-N -1";
-		options[1] = "-T " + Long.toString(Long.MIN_VALUE) + "";
-		rank.setOptions(options);
-		return rank.search(igae, data);
-	}
 
+	public Instances filterAtributes(Instances data) throws Exception{
+	weka.filters.supervised.attribute.AttributeSelection filter = new weka.filters.supervised.attribute.AttributeSelection();
+	InfoGainAttributeEval eval= new InfoGainAttributeEval();
+	Ranker search= new Ranker();
+	filter.setEvaluator(eval);
+	filter.setSearch(search);
+	filter.setInputFormat(data);
+	Instances filtered= Filter.useFilter(data, filter);
+	 System.out.println(filtered);
+	 return filtered;
+	}
+	
 	public String converter(String arg) throws IOException {
 		String outputFile= arg + ".arff";
 		FileWriter fw = new FileWriter(outputFile);
@@ -93,5 +99,6 @@ public class Preprocessor {
 		br.close();
 		return outputFile;
 	}
+	
 
 }
