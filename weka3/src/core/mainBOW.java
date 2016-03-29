@@ -14,14 +14,19 @@ import weka.filters.Filter;
 
 public class mainBOW {
 
-		public static void main(String[] args) throws IOException, Exception{
-			Preprocessor PP=Preprocessor.getPreprocessor();
-			String of=PP.converter(args[0]);
-			Instances berria=PP.stringToWordVectorFilter(PP.getDataInstances(of));
-			Instances filtratua= PP.filterAtributes(berria);
-			ArffSaver arff= new ArffSaver();
-			arff.setFile(new File(args[1]));
-			arff.setInstances(filtratua);
+	public static void main(String[] args) throws IOException, Exception {
+		Preprocessor PP = Preprocessor.getPreprocessor();
+		String[] arffs=new String[3];
+		for (int i = 0; i < args.length; i++) {
+			String path = PP.converter(args[i]);
+			Instances berria = PP.stringToWordVectorFilter(PP.getDataInstances(path));
+			String endfile=path.replace(".csv.arff",".bow.arff");
+			ArffSaver arff = new ArffSaver();
+			arff.setFile(new File(endfile));
+			arff.setInstances(berria);
 			arff.writeBatch();
+			arffs[i]=endfile;
 		}
+		//PP.Batidora(arffs);
+	}
 }
