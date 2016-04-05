@@ -1,24 +1,18 @@
 package preprocessor;
 
-import java.beans.FeatureDescriptor;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Iterator;
-
-import weka.attributeSelection.AttributeSelection;
 import weka.attributeSelection.InfoGainAttributeEval;
 import weka.attributeSelection.Ranker;
-import weka.core.Attribute;
 import weka.core.Instances;
-import weka.core.converters.ArffLoader;
-import weka.core.converters.ArffSaver;
 import weka.core.converters.ArffLoader.ArffReader;
+import weka.core.converters.ArffSaver;
+import weka.core.converters.CSVLoader;
 import weka.filters.Filter;
 import weka.filters.unsupervised.attribute.StringToWordVector;
 import weka.filters.unsupervised.instance.SparseToNonSparse;
@@ -76,80 +70,71 @@ public class Preprocessor {
 		return filtered;
 	}
 
-	public void BOWmerger(String[] args) throws Exception {
-		int i = 0;
-		Instances[] datasets = new Instances[3];
-		Instances[] structures = new Instances[3];
-		ArrayList<String> atributes = new ArrayList<String>();
-		while (i < args.length) {
-			BufferedReader pathReader = new BufferedReader(new FileReader(args[i]));
-			ArffReader arff = new ArffReader(pathReader);
-			datasets[i] = arff.getData();
-			structures[i] = arff.getStructure(); 
-			i++;
-		}
-		File f = new File("C:\\Users\\Ray\\Downloads\\tweet_sentiment\\tweet_sentiment\\BOW.arff");
-		BufferedWriter bw = new BufferedWriter(new FileWriter(f));
-		Iterator<String> itr = atributes.iterator();
-		
-	}
-
-	/*public void Batidora(String[] paths) throws Exception{
-		Instances[] instancias= new Instances[3];
-		Instances mix=null;
-		Instances atributos=null;
-		ArffSaver saver= new ArffSaver();
-		File file= new File("C:\\Users\\Ray\\Downloads\\tweet_sentiment\\tweet_sentiment\\Mix2016.arff");
-		saver.setDestination(file);
-		for(int i=0;i<paths.length;i++){
-			BurfferedReader reader= new ArffReader(new BufferedReader(new FileReader(paths[i])));
-			instancias[i]=reader.getData();
-			atributos=reader.getStructure();
-			mix=
-			atributos=Instances.mergeInstances(atributos, reader.getStructure());	
-			mix= Instances.mergeInstances(mix, reader.getData());
-		}
-		
-		saver.setStructure(atributos);
-		saver.setInstances(mix);
-		Instances filtered= stringToWordVectorFilter(saver.getInstances());
-		saver.setInstances(filtered);
-		saver.writeBatch();
-		
-		
-	}*/
-	/**Metodo honek csv fitxategia arff fitxategira bihurtzen du
+	/**
+	 * Metodo honek csv fitxategia arff fitxategira bihurtzen du
 	 * 
 	 * @param arg
 	 * @return code(@String) path-a
 	 * @throws IOException
 	 */
-	public ArrayList<String> getAttributes(String path) throws IOException{
-		ArrayList<String> atributes= new ArrayList<String>();
-		BufferedReader reader= new BufferedReader(new FileReader(path));
-		String lerroa=null;
+	public ArrayList<String> getAttributes(String path) throws IOException {
+		ArrayList<String> atributes = new ArrayList<String>();
+		BufferedReader reader = new BufferedReader(new FileReader(path));
+		String lerroa = null;
 		while ((lerroa = reader.readLine()) != null) {
-			if(lerroa.startsWith("@attribute")){
-				lerroa=lerroa.substring(0, 5);
+			if (lerroa.startsWith("@attribute")) {
+				lerroa = lerroa.substring(0, 5);
 				atributes.add(lerroa);
 			}
-			
+
 		}
+		reader.close();
 		return atributes;
-		
+
 	}
-	/*public ArrayList<String> getInstantziak(String path) throws IOException{
+
+	public void bowGenerator(String[] args) throws IOException {
+		String[] arffs = new String[3];
+		for (int i = 0; i < args.length; i++) {
+			arffs[i] = args[i] + ".arff";
+		}
+
+		String path = arffs[0].replace("train.csv", "BOW");
+		FileWriter fw = new FileWriter(path);
+		BufferedWriter bw = new BufferedWriter(fw);
 		
+		ArffSaver saver = new ArffSaver();
+		ArffReader reader = new ArffReader(new FileReader(arffs[0]));
 		
-	}*/	
-	public String converter(String arg) throws IOException {
-		String outputFile= arg + ".arff";
+		Instances structure = reader.getStructure();
+		saver.setDestination(new File(path));
+		saver.setStructure(structure);
+		saver.writeBatch();
+		int kop = 0;
+		Instances toCopy = reader.getData();
+		
+		for (int i = 0; i < arffs.length; i++) {
+			reader = new ArffReader(new FileReader(arffs[i]));
+			Instances toSave = reader.getData();
+			toCopy = Instances.mergeInstances(toCopy, toSave);
+			kop = reader.getData().numInstances();
+			bw.append("#" + kop);
+		}
+		
+		saver.setInstances(toCopy);
+		saver.writeBatch();
+		bw.close();
+	}
+	
+	
+	public void converter(String arg) throws IOException {
+		String outputFile = arg + ".arff";
 		FileWriter fw = new FileWriter(outputFile);
 		BufferedWriter bw = new BufferedWriter(fw);
 		FileReader fr = new FileReader(arg);
 		BufferedReader br = new BufferedReader(fr);
-		bw.write("@RELATION "+arg+"\n\n");
-		bw.write("@ATTRIBUTE Text string \n\n");
+		bw.write("@RELATION " + arg + "\n\n");
+		bw.write("@ATTRIBUTE Textua string \n\n");
 		bw.write("@ATTRIBUTE Klasea {neutral,positive,negative}\n");
 		bw.write("@DATA\n");
 		String lerroa = br.readLine();
@@ -171,8 +156,7 @@ public class Preprocessor {
 		} // while
 		bw.close();
 		br.close();
-		return outputFile;
+
 	}
-	
 
 }
