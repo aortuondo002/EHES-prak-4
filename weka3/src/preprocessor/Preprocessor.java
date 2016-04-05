@@ -3,6 +3,7 @@ package preprocessor;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -69,7 +70,38 @@ public class Preprocessor {
 		System.out.println();
 		return filtered;
 	}
+	public void bow(String[] args) throws IOException{
+		
+		String[] arffs=new String[3];
+		for (int a = 0; a < args.length; a++) {
+			arffs[a]=args[a]+".arff";
+		}
+		FileWriter fw = new FileWriter("bow.arff");
+		BufferedWriter bw = new BufferedWriter(fw);
+		bw.write("@RELATION BOW \n\n");
+		bw.write("@ATTRIBUTE Text string \n\n");
+		bw.write("@ATTRIBUTE Klase {neutral,positive,negative}\n");
+		bw.write("@DATA\n");
+		int[]kop = {0,0,0};
+		for (int i = 0; i < arffs.length; i++) {
 
+			FileReader fr = new FileReader(arffs[i]);
+			BufferedReader br = new BufferedReader(fr);
+				String lerroa = br.readLine();
+
+				while ((lerroa = br.readLine()) != null) {
+					if (!lerroa.startsWith("@")) {
+						bw.write(lerroa+"\n");
+						kop[i]++;
+					}
+				}
+			System.out.println();
+			fr.close();
+
+		}
+		bw.close();
+	}
+	
 	/**
 	 * Metodo honek csv fitxategia arff fitxategira bihurtzen du
 	 * 
@@ -77,56 +109,7 @@ public class Preprocessor {
 	 * @return code(@String) path-a
 	 * @throws IOException
 	 */
-	public ArrayList<String> getAttributes(String path) throws IOException {
-		ArrayList<String> atributes = new ArrayList<String>();
-		BufferedReader reader = new BufferedReader(new FileReader(path));
-		String lerroa = null;
-		while ((lerroa = reader.readLine()) != null) {
-			if (lerroa.startsWith("@attribute")) {
-				lerroa = lerroa.substring(0, 5);
-				atributes.add(lerroa);
-			}
 
-		}
-		reader.close();
-		return atributes;
-
-	}
-
-	public void bowGenerator(String[] args) throws IOException {
-		String[] arffs = new String[3];
-		for (int i = 0; i < args.length; i++) {
-			arffs[i] = args[i] + ".arff";
-		}
-
-		String path = arffs[0].replace("train.csv", "BOW");
-		FileWriter fw = new FileWriter(path);
-		BufferedWriter bw = new BufferedWriter(fw);
-		
-		ArffSaver saver = new ArffSaver();
-		ArffReader reader = new ArffReader(new FileReader(arffs[0]));
-		
-		Instances structure = reader.getStructure();
-		saver.setDestination(new File(path));
-		saver.setStructure(structure);
-		saver.writeBatch();
-		int kop = 0;
-		Instances toCopy = reader.getData();
-		
-		for (int i = 0; i < arffs.length; i++) {
-			reader = new ArffReader(new FileReader(arffs[i]));
-			Instances toSave = reader.getData();
-			toCopy = Instances.mergeInstances(toCopy, toSave);
-			kop = reader.getData().numInstances();
-			bw.append("#" + kop);
-		}
-		
-		saver.setInstances(toCopy);
-		saver.writeBatch();
-		bw.close();
-	}
-	
-	
 	public void converter(String arg) throws IOException {
 		String outputFile = arg + ".arff";
 		FileWriter fw = new FileWriter(outputFile);
@@ -134,8 +117,8 @@ public class Preprocessor {
 		FileReader fr = new FileReader(arg);
 		BufferedReader br = new BufferedReader(fr);
 		bw.write("@RELATION " + arg + "\n\n");
-		bw.write("@ATTRIBUTE Textua string \n\n");
-		bw.write("@ATTRIBUTE Klasea {neutral,positive,negative}\n");
+		bw.write("@ATTRIBUTE Text string \n\n");
+		bw.write("@ATTRIBUTE Klase {neutral,positive,negative}\n");
 		bw.write("@DATA\n");
 		String lerroa = br.readLine();
 
@@ -159,4 +142,30 @@ public class Preprocessor {
 
 	}
 
+	public void BOWmerger(String[] args) throws Exception {
+		String[] arffs=new String[3];
+		for (int a = 0; a < args.length; a++) {
+			arffs[a]=args[a]+".arff";
+		}
+		int i = 0;
+		Instances[] datasets = new Instances[3];
+		Instances[] structures = new Instances[3];
+		int[] kop= new int[3];
+		while (i < arffs.length) {
+			BufferedReader pathReader = new BufferedReader(new FileReader(arffs[i]));
+			ArffReader arff = new ArffReader(pathReader);
+			
+			arff.getData().deleteAttributeAt(0);
+			arff.getData().deleteAttributeAt(0);
+			datasets[i] = arff.getData();
+			structures[i] = arff.getStructure();
+			kop[i]=arff.getData().numInstances();
+			i++;
+		}
+		File f = new File("C:\\Users\\Ray\\Downloads\\tweet_sentiment\\tweet_sentiment\\BOW.arff");
+		ArffSaver saver= new ArffSaver();
+		BufferedWriter bw= new BufferedWriter(new FileWriter(f));
+		bw.append("#"+kop[0]+"#"+kop[1]+"#"+kop[2]);
+		
+	}
 }

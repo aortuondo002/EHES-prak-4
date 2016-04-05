@@ -11,6 +11,6 @@ public class mainBOW {
 		for (int i = 0; i < args.length; i++) {
 			PP.converter(args[i]);
 		}
-		PP.bowGenerator(args);
+		PP.bow(args);
 	}
 }
