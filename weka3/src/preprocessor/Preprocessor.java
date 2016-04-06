@@ -15,13 +15,14 @@ import weka.core.converters.ArffLoader.ArffReader;
 import weka.core.converters.ArffSaver;
 import weka.core.converters.CSVLoader;
 import weka.filters.Filter;
+import weka.filters.unsupervised.attribute.Remove;
 import weka.filters.unsupervised.attribute.StringToWordVector;
 import weka.filters.unsupervised.instance.SparseToNonSparse;
 
 public class Preprocessor {
 
 	public static Preprocessor PP;
-	String bowPath = "";
+	String bowPath = "C:\\Users\\Ray\\Downloads\\tweet_sentiment\\tweet_sentiment\\tweetSentiment.BagOfWords.arff";
 
 
 	public static synchronized Preprocessor getPreprocessor() {
@@ -35,13 +36,14 @@ public class Preprocessor {
 	public Preprocessor() {
 	}
 
-	public int[] bowMixer(String[] args) throws FileNotFoundException, IOException {
+	public int[] bowMixer(String[] args) throws Exception {
 		int[] kop = { 0, 0, 0 };
 		for (int i = 0; i < args.length; i++) {
 			args[i] = args[i].replace(".csv", ".csv.arff");
 		}
 		ArffSaver saver = new ArffSaver();
-		saver.setFile(new File(args[0].replace("train.csv", "BagOfWords")));
+		//bowPath=args[0].replace("train.csv", "BagOfWords");
+		saver.setFile(new File(bowPath));
 
 		Instances bow = null;
 		Instances[] toSave = new Instances[3];
@@ -59,12 +61,18 @@ public class Preprocessor {
 				bow.add(toSave[i].instance(j));
 			}	
 		}	
-		saver.setInstances(bow);
+		Instances newBow=garbitzaile(bow);
+		saver.setInstances(newBow);
 		saver.writeBatch();
 
 		return kop;
 	}
-
+public void arffWriter(Instances data) throws IOException{
+	ArffSaver saver= new ArffSaver();
+	saver.setFile(new File(bowPath+".arff"));
+	saver.setInstances(data);;
+	saver.writeBatch();
+}
 	public void csv2arff(String path) throws Exception {
 		String outPath = path.replace(".csv", "2.arff");
 		FileWriter fw = new FileWriter(outPath);
@@ -111,6 +119,8 @@ public class Preprocessor {
 		weka.filters.supervised.attribute.AttributeSelection filter = new weka.filters.supervised.attribute.AttributeSelection();
 		InfoGainAttributeEval eval = new InfoGainAttributeEval();
 		Ranker search = new Ranker();
+		data.setClassIndex(0);
+		search.setThreshold(0.001);
 		filter.setEvaluator(eval);
 		filter.setSearch(search);
 		filter.setInputFormat(data);
@@ -125,19 +135,17 @@ public class Preprocessor {
 	}
 
 	public Instances getDataInstances(String path) throws IOException {
-		BufferedReader br = new BufferedReader(new FileReader(path));
-		Instances rawData = null;
-		rawData = new Instances(br);
-		br.close();
-		rawData.setClassIndex(rawData.numAttributes() - 1);
+		ArffReader reader=new ArffReader(new FileReader(new File(path)));
+		Instances rawData=reader.getData();
+		
 		return rawData;
 	}
 
 	public Instances quitSparseValues(Instances Data) throws Exception {
 		SparseToNonSparse filter = new SparseToNonSparse();
 		filter.setInputFormat(Data);
-		Filter.useFilter(Data, filter);
-		return Data;
+		Instances newData=Filter.useFilter(Data, filter);
+		return newData;
 	}
 
 	public Instances stringToWordVectorFilter(Instances rawData) throws Exception {
@@ -146,8 +154,24 @@ public class Preprocessor {
 		stringToWordVectorFilter.setWordsToKeep(4000);
 		stringToWordVectorFilter.setOutputWordCounts(true);
 		stringToWordVectorFilter.setLowerCaseTokens(true);
-		Instances dataToWordVector = Filter.useFilter(rawData, stringToWordVectorFilter);
-		return dataToWordVector;
+		Instances newData=Filter.useFilter(rawData, stringToWordVectorFilter);
+		return newData;
 	}
+	
+	public Instances getStr(String path) throws FileNotFoundException, IOException{
+		ArffReader reader=new ArffReader(new FileReader(new File(path)));
+		Instances rawData=reader.getStructure();
+		return rawData;
+	}
+	
+	public Instances garbitzaile(Instances data)throws Exception{
+		Remove remove= new Remove();
+		remove.setInputFormat(data);
+		remove.setAttributeIndices("1,3,4");
+		Instances newData=Remove.useFilter(data, remove);
+		return newData;
+	}
+	
+
 
 }
