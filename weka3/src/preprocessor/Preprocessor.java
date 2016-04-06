@@ -7,7 +7,7 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.ArrayList;
+
 import weka.attributeSelection.InfoGainAttributeEval;
 import weka.attributeSelection.Ranker;
 import weka.core.Instances;
@@ -21,9 +21,8 @@ import weka.filters.unsupervised.instance.SparseToNonSparse;
 public class Preprocessor {
 
 	public static Preprocessor PP;
+	String bowPath = "";
 
-	public Preprocessor() {
-	}
 
 	public static synchronized Preprocessor getPreprocessor() {
 		if (PP == null) {
@@ -32,30 +31,80 @@ public class Preprocessor {
 		return PP;
 	}
 
-	public Instances getDataInstances(String path) throws IOException {
-		BufferedReader br = new BufferedReader(new FileReader(path));
-		Instances rawData = null;
-		rawData = new Instances(br);
+
+	public Preprocessor() {
+	}
+
+	public int[] bowMixer(String[] args) throws FileNotFoundException, IOException {
+		int[] kop = { 0, 0, 0 };
+		for (int i = 0; i < args.length; i++) {
+			args[i] = args[i].replace(".csv", ".csv.arff");
+		}
+		ArffSaver saver = new ArffSaver();
+		saver.setFile(new File(args[0].replace("train.csv", "BagOfWords")));
+
+		Instances bow = null;
+		Instances[] toSave = new Instances[3];
+		for (int i = 0; i < kop.length; i++) {
+			ArffReader reader = new ArffReader(new FileReader(args[i]));
+			toSave[i] = reader.getData();
+			kop[i] = toSave[i].numInstances();
+			if(i==0){
+				saver.setStructure(reader.getStructure());
+			}
+		}
+		bow=new Instances(toSave[0]);
+		for (int i = 1; i < toSave.length; i++) {
+			for (int j = 0; j < toSave[i].numInstances(); j++) {
+				bow.add(toSave[i].instance(j));
+			}	
+		}	
+		saver.setInstances(bow);
+		saver.writeBatch();
+
+		return kop;
+	}
+
+	public void csv2arff(String path) throws Exception {
+		String outPath = path.replace(".csv", "2.arff");
+		FileWriter fw = new FileWriter(outPath);
+		BufferedWriter bw = new BufferedWriter(fw);
+		FileReader fr = new FileReader(path);
+		BufferedReader br = new BufferedReader(fr);
+		String lerroa = "";
+		String newLerroa = "";
+		while ((lerroa = br.readLine()) != null) {
+			if (lerroa.startsWith("\"") && !lerroa.startsWith("\"\"") && !lerroa.contains("irrelevant")) {
+				newLerroa = lerroa;
+				newLerroa = newLerroa.substring(1, lerroa.length() - 1);
+				newLerroa = newLerroa.replace("\t", ",");
+				newLerroa = newLerroa.replace("\",\"", "\t");
+				newLerroa = newLerroa.replace("'", "´");
+				newLerroa = newLerroa.replace(",", "/");
+				bw.write(newLerroa + "\n");
+			}
+		}
+		bw.flush();
+		bw.close();
 		br.close();
-		rawData.setClassIndex(rawData.numAttributes() - 1);
-		return rawData;
-	}
+		// load CSV
 
-	public Instances stringToWordVectorFilter(Instances rawData) throws Exception {
-		StringToWordVector stringToWordVectorFilter = new StringToWordVector();
-		stringToWordVectorFilter.setInputFormat(rawData);
-		stringToWordVectorFilter.setWordsToKeep(4000);
-		stringToWordVectorFilter.setOutputWordCounts(true);
-		stringToWordVectorFilter.setLowerCaseTokens(true);
-		Instances dataToWordVector = Filter.useFilter(rawData, stringToWordVectorFilter);
-		return dataToWordVector;
-	}
+		CSVLoader loader = new CSVLoader();
+		loader.setSource(new File(outPath));
 
-	public Instances quitSparseValues(Instances Data) throws Exception {
-		SparseToNonSparse filter = new SparseToNonSparse();
-		filter.setInputFormat(Data);
-		Filter.useFilter(Data, filter);
-		return Data;
+		loader.setEnclosureCharacters("\t");
+		loader.setNominalAttributes("2");
+		loader.setStringAttributes("5");
+		Instances data = loader.getDataSet();
+
+		// save ARFF
+		ArffSaver saver = new ArffSaver();
+		saver.setStructure(loader.getStructure());
+		saver.setInstances(data);
+		saver.setFile(new File(path + ".arff"));
+		// saver.setDestination(new File(path+".arff"));
+		saver.writeBatch();
+
 	}
 
 	public Instances filterAtributes(Instances data) throws Exception {
@@ -70,102 +119,35 @@ public class Preprocessor {
 		System.out.println();
 		return filtered;
 	}
-	public void bow(String[] args) throws IOException{
-		
-		String[] arffs=new String[3];
-		for (int a = 0; a < args.length; a++) {
-			arffs[a]=args[a]+".arff";
-		}
-		FileWriter fw = new FileWriter("bow.arff");
-		BufferedWriter bw = new BufferedWriter(fw);
-		bw.write("@RELATION BOW \n\n");
-		bw.write("@ATTRIBUTE Text string \n\n");
-		bw.write("@ATTRIBUTE Klase {neutral,positive,negative}\n");
-		bw.write("@DATA\n");
-		int[]kop = {0,0,0};
-		for (int i = 0; i < arffs.length; i++) {
 
-			FileReader fr = new FileReader(arffs[i]);
-			BufferedReader br = new BufferedReader(fr);
-				String lerroa = br.readLine();
-
-				while ((lerroa = br.readLine()) != null) {
-					if (!lerroa.startsWith("@")) {
-						bw.write(lerroa+"\n");
-						kop[i]++;
-					}
-				}
-			System.out.println();
-			fr.close();
-
-		}
-		bw.close();
+	public String getBowPath() {
+		return bowPath;
 	}
-	
-	/**
-	 * Metodo honek csv fitxategia arff fitxategira bihurtzen du
-	 * 
-	 * @param arg
-	 * @return code(@String) path-a
-	 * @throws IOException
-	 */
 
-	public void converter(String arg) throws IOException {
-		String outputFile = arg + ".arff";
-		FileWriter fw = new FileWriter(outputFile);
-		BufferedWriter bw = new BufferedWriter(fw);
-		FileReader fr = new FileReader(arg);
-		BufferedReader br = new BufferedReader(fr);
-		bw.write("@RELATION " + arg + "\n\n");
-		bw.write("@ATTRIBUTE Text string \n\n");
-		bw.write("@ATTRIBUTE Klase {neutral,positive,negative}\n");
-		bw.write("@DATA\n");
-		String lerroa = br.readLine();
-
-		while ((lerroa = br.readLine()) != null) {
-			if (lerroa.startsWith("\"") && !lerroa.startsWith("\"\"")) {
-
-				lerroa = lerroa.substring(1, lerroa.length());
-				String[] atazak = lerroa.split("\",\"");
-
-				if (!atazak[1].equalsIgnoreCase("irrelevant")) {
-					if (atazak[1].equalsIgnoreCase("UNKNOWN")) {
-						atazak[1] = "?";
-					}
-					bw.write("'" + atazak[4].replace("'", "´") + "'," + atazak[1] + "\n");
-				}
-				bw.flush();
-			}
-		} // while
-		bw.close();
+	public Instances getDataInstances(String path) throws IOException {
+		BufferedReader br = new BufferedReader(new FileReader(path));
+		Instances rawData = null;
+		rawData = new Instances(br);
 		br.close();
-
+		rawData.setClassIndex(rawData.numAttributes() - 1);
+		return rawData;
 	}
 
-	public void BOWmerger(String[] args) throws Exception {
-		String[] arffs=new String[3];
-		for (int a = 0; a < args.length; a++) {
-			arffs[a]=args[a]+".arff";
-		}
-		int i = 0;
-		Instances[] datasets = new Instances[3];
-		Instances[] structures = new Instances[3];
-		int[] kop= new int[3];
-		while (i < arffs.length) {
-			BufferedReader pathReader = new BufferedReader(new FileReader(arffs[i]));
-			ArffReader arff = new ArffReader(pathReader);
-			
-			arff.getData().deleteAttributeAt(0);
-			arff.getData().deleteAttributeAt(0);
-			datasets[i] = arff.getData();
-			structures[i] = arff.getStructure();
-			kop[i]=arff.getData().numInstances();
-			i++;
-		}
-		File f = new File("C:\\Users\\Ray\\Downloads\\tweet_sentiment\\tweet_sentiment\\BOW.arff");
-		ArffSaver saver= new ArffSaver();
-		BufferedWriter bw= new BufferedWriter(new FileWriter(f));
-		bw.append("#"+kop[0]+"#"+kop[1]+"#"+kop[2]);
-		
+	public Instances quitSparseValues(Instances Data) throws Exception {
+		SparseToNonSparse filter = new SparseToNonSparse();
+		filter.setInputFormat(Data);
+		Filter.useFilter(Data, filter);
+		return Data;
 	}
+
+	public Instances stringToWordVectorFilter(Instances rawData) throws Exception {
+		StringToWordVector stringToWordVectorFilter = new StringToWordVector();
+		stringToWordVectorFilter.setInputFormat(rawData);
+		stringToWordVectorFilter.setWordsToKeep(4000);
+		stringToWordVectorFilter.setOutputWordCounts(true);
+		stringToWordVectorFilter.setLowerCaseTokens(true);
+		Instances dataToWordVector = Filter.useFilter(rawData, stringToWordVectorFilter);
+		return dataToWordVector;
+	}
+
 }
