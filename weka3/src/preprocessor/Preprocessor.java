@@ -141,6 +141,7 @@ public class Preprocessor {
 		Ranker search = new Ranker();
 		data.setClassIndex(0);
 		search.setThreshold(0.00001);
+		search.setNumToSelect(333);
 		filter.setEvaluator(eval);
 		filter.setSearch(search);
 		filter.SelectAttributes(data);
