@@ -12,6 +12,7 @@ import weka.attributeSelection.InfoGainAttributeEval;
 import weka.attributeSelection.Ranker;
 import weka.core.Instances;
 import weka.core.converters.ArffLoader.ArffReader;
+import weka.core.converters.ArffLoader;
 import weka.core.converters.ArffSaver;
 import weka.core.converters.CSVLoader;
 import weka.filters.Filter;
@@ -35,9 +36,9 @@ public class Preprocessor {
 	public Preprocessor() {
 	}
 
-	public void arffWriter(Instances data) throws IOException {
+	public void arffWriter(Instances data,String path) throws IOException {
 		ArffSaver saver = new ArffSaver();
-		saver.setFile(new File(bowPath + ".arff"));
+		saver.setFile(new File(path));
 		saver.setInstances(data);
 		;
 		saver.writeBatch();
@@ -126,10 +127,9 @@ public class Preprocessor {
 		filter.setEvaluator(eval);
 		filter.setSearch(search);
 		filter.setInputFormat(data);
-		Instances filtered = Filter.useFilter(data, filter);
-		System.out.println(filtered);
-		System.out.println();
+		Instances filtered = Filter.useFilter(data, filter);		
 		return filtered;
+
 	}
 
 	public Instances garbitzaile(Instances data) throws Exception {
@@ -163,7 +163,13 @@ public class Preprocessor {
 		Instances newData = Filter.useFilter(Data, filter);
 		return newData;
 	}
-
+	//TODO
+	public void separator(int[]kop,String[]args) throws IOException{
+		Instances dataset=getDataInstances(bowPath+".arff");
+		for (int i = 0; i < args.length; i++) {
+					Instances newData=
+		}
+	}
 	public Instances stringToWordVectorFilter(Instances rawData) throws Exception {
 		StringToWordVector stringToWordVectorFilter = new StringToWordVector();
 		stringToWordVectorFilter.setInputFormat(rawData);

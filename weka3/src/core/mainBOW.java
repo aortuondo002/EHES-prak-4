@@ -18,12 +18,14 @@ public class mainBOW {
 		dataGarbia.deleteAttributeAt(0);
 		dataGarbia.deleteAttributeAt(1);
 		dataGarbia.deleteAttributeAt(1);
-
-		pp.arffWriter(dataGarbia);
+String path=pp.getBowPath()+".arff";
+		pp.arffWriter(dataGarbia,path);
 		dataGarbia = pp.stringToWordVectorFilter(dataGarbia);
 		dataGarbia = pp.quitSparseValues(dataGarbia);
 		dataGarbia = pp.filterAtributes(dataGarbia);
 		System.out.println(dataGarbia.numAttributes());
+		pp.arffWriter(dataGarbia, path);
+		//pp.separate(kop,args);
 		// pp.quitSparseValues(toTry);
 
 	}
