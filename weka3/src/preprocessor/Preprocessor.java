@@ -155,10 +155,10 @@ public class Preprocessor {
 
 	public void setter(String path, Instances data) {
 		if (path.contains("test")) {
-			this.test=data;}
+			this.test=new Instances(data);}
 			else if(path.contains("train")){
-				this.train=data;	
-			}else this.dev=data;
+				this.train=new Instances(data);	
+			}else this.dev=new Instances(data);
 			
 		
 	}
@@ -184,6 +184,7 @@ public class Preprocessor {
 		Instances separate=new Instances(dataset);
 		
 		separate.clear();
+		
 		Instances[] asd= new Instances[3];
 		for (int i = 0; i < asd.length; i++) {
 			asd[i]=separate;
@@ -199,10 +200,11 @@ public class Preprocessor {
 			}
 			
 			asd[i]=separate;
-			arffWriter(separate,args[i].replaceAll("_2.+","bow.arff"));
-		}
-		for (int i = 0; i < args.length; i++) {
 			setter(args[i], asd[i]);
+			System.out.println();
+			System.out.println(separate.equals(getDataInstance("dev")));
+			System.out.println(separate.equals(asd[i]));
+			arffWriter(separate,args[i].replaceAll("_2.+","bow.arff"));
 		}
 	}
 
