@@ -10,10 +10,12 @@ import java.io.IOException;
 import weka.attributeSelection.AttributeSelection;
 import weka.attributeSelection.InfoGainAttributeEval;
 import weka.attributeSelection.Ranker;
+import weka.core.Instance;
 import weka.core.Instances;
 import weka.core.converters.ArffLoader.ArffReader;
 import weka.core.converters.ArffSaver;
 import weka.core.converters.CSVLoader;
+import weka.core.pmml.jaxbbindings.COMPAREFUNCTION;
 import weka.filters.Filter;
 import weka.filters.unsupervised.attribute.Remove;
 import weka.filters.unsupervised.attribute.StringToWordVector;
@@ -34,8 +36,8 @@ public class Preprocessor {
 	public Instances dev;
 	public Instances train;
 	public Instances test;
-	public Instances[] instantziak={train,dev,test};
-	
+	public int[] atrLista;
+
 	public Preprocessor() {
 	}
 
@@ -53,16 +55,16 @@ public class Preprocessor {
 			args[i] = args[i].replace(".csv", "_2.csv.arff");
 		}
 		ArffSaver saver = new ArffSaver();
-		saver.setFile(new File(args[0].replace("twitterSentiment\\S+","BOW")));
+		saver.setFile(new File(args[0].replace("twitterSentiment\\S+", "BOW")));
 		Instances bow = null;
 		Instances[] toSave = new Instances[3];
 		for (int i = 0; i < kop.length; i++) {
 			if (args[i].contains("train")) {
-				toSave[i]= train;
+				toSave[i] = train;
 			} else if (args[i].contains("test")) {
-				toSave[i]=test;
+				toSave[i] = test;
 			} else {
-				toSave[i]=dev;
+				toSave[i] = dev;
 			}
 			kop[i] = toSave[i].numInstances();
 		}
@@ -121,14 +123,14 @@ public class Preprocessor {
 
 		// save ARFF
 		arffWriter(data, outPath + ".arff");
-		if(path.contains("train")){
-			train=data;
+		if (path.contains("train")) {
+			train = data;
 		}
-		if(path.contains("test")){
-			test=data;
+		if (path.contains("test")) {
+			test = data;
 		}
-		if(path.contains("dev")){
-			dev=data;
+		if (path.contains("dev")) {
+			dev = data;
 		}
 
 	}
@@ -142,19 +144,25 @@ public class Preprocessor {
 		filter.setEvaluator(eval);
 		filter.setSearch(search);
 		filter.SelectAttributes(data);
-		ret
+		this.atrLista = filter.selectedAttributes();
+		return this.atributuakKendu(data);
 
 	}
 
-	public void setter(String path,Instances data){
-		if (path.contains("train")) {
-			train=data;
-		} else if (path.contains("test")) {
-			test=data;
-		} else {
-			dev=data;
-		}
+	public Instances[] getInstances() {
+		return new Instances[] { this.dev, this.train, this.test };
 	}
+
+	public void setter(String path, Instances data) {
+		if (path.contains("test")) {
+			this.test=data;}
+			else if(path.contains("train")){
+				this.train=data;	
+			}else this.dev=data;
+			
+		
+	}
+
 	public Instances getDataInstance(String name) {
 		if (name.contains("train")) {
 			return train;
@@ -172,22 +180,29 @@ public class Preprocessor {
 		return newData;
 	}
 
-	
 	public void separator(int[] kop, String[] args, Instances dataset) throws IOException {
-		Instances newData = new Instances(dataset);
-		newData.clear();
-		int where = 0;
-		int last = 0;
-		for (int i = 0; i < args.length; i++) {
-			last = where + kop[i];
-			for (int j = where; j < last; j++) {
-				newData.add(dataset.get(where));
+		Instances separate=new Instances(dataset);
+		
+		separate.clear();
+		Instances[] asd= new Instances[3];
+		for (int i = 0; i < asd.length; i++) {
+			asd[i]=separate;
+		}
+		int start = 0,end=0;
+		for (int i = 0; i < kop.length; i++) {
+			separate.clear();
+			end=end+kop[i];
+			while(start!=end){
+				separate.add(dataset.instance(start));
+				start++;
+				
 			}
-			where = where + kop[i];
-			System.out.println(kop[i] + "   " + newData.numInstances());
-			arffWriter(newData, args[i].replace("tweetSentiment.", "New_").replace(".csv", "").replace("_2", ""));
-			setter(args[i], newData);
-			newData.clear();
+			
+			asd[i]=separate;
+			arffWriter(separate,args[i].replaceAll("_2.+","bow.arff"));
+		}
+		for (int i = 0; i < args.length; i++) {
+			setter(args[i], asd[i]);
 		}
 	}
 
@@ -196,17 +211,16 @@ public class Preprocessor {
 		stringToWordVectorFilter.setInputFormat(rawData);
 		stringToWordVectorFilter.setIDFTransform(tfidf);
 		stringToWordVectorFilter.setTFTransform(tfidf);
-		;
 		stringToWordVectorFilter.setWordsToKeep(4000);
 		stringToWordVectorFilter.setOutputWordCounts(true);
 		stringToWordVectorFilter.setLowerCaseTokens(true);
 		Instances newData = Filter.useFilter(rawData, stringToWordVectorFilter);
 		return newData;
 	}
-	
-	public Instances atributuakKendu(Instances test,int[] attributes) throws Exception {
+
+	public Instances atributuakKendu(Instances test) throws Exception {
 		Remove r = new Remove();
-		r.setAttributeIndicesArray(attributes);
+		r.setAttributeIndicesArray(atrLista);
 		r.setInvertSelection(true);
 		r.setInputFormat(test);
 		return Filter.useFilter(test, r);

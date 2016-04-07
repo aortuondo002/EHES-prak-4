@@ -15,25 +15,37 @@ public class mainBOW {
 		}
 
 		int[] kop = pp.bowMixer(args);
-		
+
 		Instances RawData = pp.bow;
-		String path= args[0].replaceFirst("tweetSentiment.+", "BOW.arff");
+		String path = args[0].replaceFirst("tweetSentiment.+", "BOW.arff");
 		System.out.println(path);
-		pp.arffWriter(RawData,path);
-		
+		pp.arffWriter(RawData, path);
 		Instances noIdfData = pp.stringToWordVectorFilter(RawData, false);
-		
 		Instances IdfData = pp.stringToWordVectorFilter(RawData, true);
-		
+
 		IdfData = pp.quitSparseValues(IdfData);
-		
 		pp.arffWriter(IdfData, path.replace("BagOfWords", "IDF-TF"));
-		
+
 		noIdfData = pp.quitSparseValues(noIdfData);
+		pp.separator(kop, args, noIdfData);
 		
+		System.out.println(pp.train.numAttributes()+","+pp.train.numInstances());
+		System.out.println(
+				"\nDev multzoaren atributu kopurua atributu hautaketa aplikatu arinago: " + pp.dev.numAttributes()+"."+pp.dev.numInstances());
+		System.out.println(
+				"\nTrain multzoaren atributu  kopurua atributu hautaketa aplikatu arinago: " + pp.train.numAttributes()+"."+pp.train.numInstances());
+		
+		pp.train = pp.filterAtributes(pp.train);
+		pp.dev = pp.filterAtributes(pp.dev);
+		System.out.println(
+				"\nDev multzoaren atributu kopurua atributu hautaketa aplikatu eta gero: " + pp.dev.numAttributes());
+		System.out.println(
+				"\nTrain multzoaren atributu  kopurua atributu hautaketa aplikatu eta gero: " + pp.train.numAttributes());
+		pp.test = pp.atributuakKendu(pp.test);
+		System.out
+				.println("Test_blind multzoaren atributu kopurua Remove aplikatu eta gero: " + pp.test.numAttributes());
+
 		pp.arffWriter(noIdfData, path);
-		
-		pp.separator(kop, args,noIdfData);
 
 	}
 }
