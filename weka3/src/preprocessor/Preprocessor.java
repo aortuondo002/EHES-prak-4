@@ -1,5 +1,6 @@
 package preprocessor;
 
+import java.awt.image.AreaAveragingScaleFilter;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -17,6 +18,7 @@ import weka.core.converters.ArffLoader;
 import weka.core.converters.ArffSaver;
 import weka.core.converters.CSVLoader;
 import weka.filters.Filter;
+import weka.filters.unsupervised.attribute.Add;
 import weka.filters.unsupervised.attribute.Remove;
 import weka.filters.unsupervised.attribute.StringToWordVector;
 import weka.filters.unsupervised.instance.SparseToNonSparse;
@@ -107,13 +109,18 @@ public class Preprocessor {
 		loader.setSource(new File(outPath));
 		loader.setFieldSeparator("\t");
 		loader.setNominalAttributes("first");
-		System.out.println(loader.nominalLabelSpecsTipText());
-		String[] specs={"1":""};
-		loader.setNominalLabelSpecs({"1":);
 		//loader.setNominalLabelSpecs(arg0);
 		loader.setStringAttributes("last");
 		Instances data = loader.getDataSet();
-		data.setClassIndex(1);
+		/*if(path.contains("blind")){
+			data.deleteAttributeAt(0);
+			Add filter= new Add();
+			filter.setAttributeName("Sentiment");
+			filter.
+			data.attribute("Sentiment").addStringValue("positive,neutral,negative");
+		}
+		*/data.setClassIndex(0);
+
 		// save ARFF
 		arffWriter(data, outPath + ".arff");
 
@@ -159,23 +166,21 @@ public class Preprocessor {
 	}
 
 	// TODO
-	public void separator(int[] kop, String[] args) throws IOException {
-		ArffReader reader = new ArffReader(new FileReader(new File(bowPath)));
-		Instances structure = reader.getStructure();
-		Instances dataset = reader.getData();
-		Instance
-
-		System.out.println(dataset.size());
-
+	public void separator(int[] kop, String[] args,Instances dataset) throws IOException {
+		Instances newData=new Instances(dataset);
+		newData.clear();
+		int where=0;
+		int last=0;
 		for (int i = 0; i < args.length; i++) {
-
-			for (int j = aux; j < kop[i] + aux; j++) {
-
-				dataset.add(reader.getData().get(j));
+			last=where+kop[i];
+			for (int j = where; j < last; j++) {
+				newData.add(dataset.get(where));
 			}
-			aux = aux + kop[i];
-			arffWriter(dataset, args[1].replace("TweetSentiment.", "New "));
-			dataset.delete();
+			where=where+kop[i];
+			
+			System.out.println(kop[i]+"   "+newData.numInstances());
+			arffWriter(newData, args[i].replace("tweetSentiment.", "New_").replace(".csv", ""));
+			newData.clear();
 		}
 	}
 
