@@ -10,6 +10,7 @@ import java.io.IOException;
 
 import weka.attributeSelection.InfoGainAttributeEval;
 import weka.attributeSelection.Ranker;
+import weka.core.Instance;
 import weka.core.Instances;
 import weka.core.converters.ArffLoader.ArffReader;
 import weka.core.converters.ArffLoader;
@@ -36,18 +37,18 @@ public class Preprocessor {
 	public Preprocessor() {
 	}
 
-	public void arffWriter(Instances data,String path) throws IOException {
-		ArffSaver saver = new ArffSaver();
-		saver.setFile(new File(path));
-		saver.setInstances(data);
-		;
-		saver.writeBatch();
+	public void arffWriter(Instances data, String path) throws IOException {
+		Instances dataSet = data;
+		BufferedWriter writer = new BufferedWriter(new FileWriter(path));
+		writer.write(dataSet.toString());
+		writer.flush();
+		writer.close();
 	}
 
 	public int[] bowMixer(String[] args) throws Exception {
 		int[] kop = { 0, 0, 0 };
 		for (int i = 0; i < args.length; i++) {
-			args[i] = args[i].replace(".csv", ".csv.arff");
+			args[i] = args[i].replace(".csv", "2.csv.arff");
 		}
 		ArffSaver saver = new ArffSaver();
 		// bowPath=args[0].replace("train.csv", "BagOfWords");
@@ -69,30 +70,32 @@ public class Preprocessor {
 				bow.add(toSave[i].instance(j));
 			}
 		}
-		Instances newBow = garbitzaile(bow);
-		saver.setInstances(newBow);
+		saver.setInstances(bow);
 		saver.writeBatch();
-
 		return kop;
 	}
 
 	public void csv2arff(String path) throws Exception {
-		String outPath = path.replace(".csv", "2.arff");
+		String outPath = path.replace(".csv", "2.csv");
 		FileWriter fw = new FileWriter(outPath);
 		BufferedWriter bw = new BufferedWriter(fw);
 		FileReader fr = new FileReader(path);
 		BufferedReader br = new BufferedReader(fr);
 		String lerroa = "";
-		String newLerroa = "";
 		while ((lerroa = br.readLine()) != null) {
 			if (lerroa.startsWith("\"") && !lerroa.startsWith("\"\"") && !lerroa.contains("irrelevant")) {
-				newLerroa = lerroa;
-				newLerroa = newLerroa.substring(1, lerroa.length() - 1);
-				newLerroa = newLerroa.replace("\t", ",");
-				newLerroa = newLerroa.replace("\",\"", "\t");
-				newLerroa = newLerroa.replace("'", "´");
-				newLerroa = newLerroa.replace(",", "/");
-				bw.write(newLerroa + "\n");
+				String aux = lerroa;
+				String[] newLerroa = aux.split("\",\"");
+				String bat = newLerroa[1];
+				String bi = newLerroa[4];
+				
+				bat = bat.substring(0, bat.length());
+				bat = bat.replace("UNKNOWN","?");
+				bi = bi.substring(0, bi.length() - 1);
+				bi = bi.replace("\t", "/").replace(",", "/").replace("'", "´");
+				bi = bi.replace("\"\"", "/");
+
+				bw.write(bat + "\t" + bi + "\n");
 			}
 		}
 		bw.flush();
@@ -102,19 +105,17 @@ public class Preprocessor {
 
 		CSVLoader loader = new CSVLoader();
 		loader.setSource(new File(outPath));
-
-		loader.setEnclosureCharacters("\t");
-		loader.setNominalAttributes("2");
-		loader.setStringAttributes("5");
+		loader.setFieldSeparator("\t");
+		loader.setNominalAttributes("first");
+		System.out.println(loader.nominalLabelSpecsTipText());
+		String[] specs={"1":""};
+		loader.setNominalLabelSpecs({"1":);
+		//loader.setNominalLabelSpecs(arg0);
+		loader.setStringAttributes("last");
 		Instances data = loader.getDataSet();
-
+		data.setClassIndex(1);
 		// save ARFF
-		ArffSaver saver = new ArffSaver();
-		saver.setStructure(loader.getStructure());
-		saver.setInstances(data);
-		saver.setFile(new File(path + ".arff"));
-		// saver.setDestination(new File(path+".arff"));
-		saver.writeBatch();
+		arffWriter(data, outPath + ".arff");
 
 	}
 
@@ -127,17 +128,9 @@ public class Preprocessor {
 		filter.setEvaluator(eval);
 		filter.setSearch(search);
 		filter.setInputFormat(data);
-		Instances filtered = Filter.useFilter(data, filter);		
+		Instances filtered = Filter.useFilter(data, filter);
 		return filtered;
 
-	}
-
-	public Instances garbitzaile(Instances data) throws Exception {
-		Remove remove = new Remove();
-		remove.setInputFormat(data);
-		remove.setAttributeIndices("1,3,4");
-		Instances newData = Filter.useFilter(data, remove);
-		return newData;
 	}
 
 	public String getBowPath() {
@@ -151,9 +144,10 @@ public class Preprocessor {
 		return rawData;
 	}
 
-	public Instances getStr(String path) throws FileNotFoundException, IOException {
+	public Instances getStr(String path) throws IOException {
 		ArffReader reader = new ArffReader(new FileReader(new File(path)));
 		Instances rawData = reader.getStructure();
+
 		return rawData;
 	}
 
@@ -163,13 +157,28 @@ public class Preprocessor {
 		Instances newData = Filter.useFilter(Data, filter);
 		return newData;
 	}
-	//TODO
-	public void separator(int[]kop,String[]args) throws IOException{
-		Instances dataset=getDataInstances(bowPath+".arff");
+
+	// TODO
+	public void separator(int[] kop, String[] args) throws IOException {
+		ArffReader reader = new ArffReader(new FileReader(new File(bowPath)));
+		Instances structure = reader.getStructure();
+		Instances dataset = reader.getData();
+		Instance
+
+		System.out.println(dataset.size());
+
 		for (int i = 0; i < args.length; i++) {
-					Instances newData=
+
+			for (int j = aux; j < kop[i] + aux; j++) {
+
+				dataset.add(reader.getData().get(j));
+			}
+			aux = aux + kop[i];
+			arffWriter(dataset, args[1].replace("TweetSentiment.", "New "));
+			dataset.delete();
 		}
 	}
+
 	public Instances stringToWordVectorFilter(Instances rawData) throws Exception {
 		StringToWordVector stringToWordVectorFilter = new StringToWordVector();
 		stringToWordVectorFilter.setInputFormat(rawData);

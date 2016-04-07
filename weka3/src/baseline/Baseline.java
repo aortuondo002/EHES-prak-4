@@ -9,20 +9,21 @@ import weka.core.Instances;
 
 public class Baseline {
 
-		public static Baseline gureBaseline;
-		
-		public Baseline(){
-			
+	public static Baseline gureBaseline;
+
+	public Baseline() {
+
+	}
+
+	public static synchronized Baseline getBaseline() {
+		if (gureBaseline == null) {
+			gureBaseline = new Baseline();
 		}
-		public static synchronized Baseline getBaseline(){
-			if(gureBaseline==null){
-				gureBaseline=new Baseline();
-			}
-			return gureBaseline;
-		}
-		
-		public void NaiveBayer(Instances data) throws Exception{
-			NaiveBayes nabe=new NaiveBayes();
-			Evaluation eval=new Evaluation(data);
-		}
+		return gureBaseline;
+	}
+
+	public void NaiveBayer(Instances data) throws Exception {
+		NaiveBayes nabe = new NaiveBayes();
+		Evaluation eval = new Evaluation(data);
+	}
 }
