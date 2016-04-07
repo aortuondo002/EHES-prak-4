@@ -46,6 +46,9 @@ public class mainBOW {
 				.println("Test_blind multzoaren atributu kopurua Remove aplikatu eta gero: " + pp.test.numAttributes());
 
 		pp.arffWriter(noIdfData, path);
+		pp.arffWriter(pp.train, path.replace("BOW", "FINAL_TRAIN"));
+		pp.arffWriter(pp.dev, path.replace("BOW", "FINAL_DEV"));
+		pp.arffWriter(pp.test, path.replace("BOW", "FINAL_TEST"));
 
 	}
 }

@@ -201,10 +201,8 @@ public class Preprocessor {
 			
 			asd[i]=separate;
 			setter(args[i], asd[i]);
-			System.out.println();
-			System.out.println(separate.equals(getDataInstance("dev")));
-			System.out.println(separate.equals(asd[i]));
-			arffWriter(separate,args[i].replaceAll("_2.+","bow.arff"));
+			
+			arffWriter(separate,args[i].replaceAll("_2.+",".bow.arff"));
 		}
 	}
 
