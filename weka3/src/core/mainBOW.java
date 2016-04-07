@@ -1,5 +1,6 @@
 package core;
 
+import java.awt.Desktop;
 import java.io.IOException;
 
 import preprocessor.Preprocessor;
@@ -14,17 +15,25 @@ public class mainBOW {
 		}
 
 		int[] kop = pp.bowMixer(args);
-		Instances RawData = pp.getDataInstances(pp.getBowPath());
-		String path = pp.getBowPath();
-		pp.arffWriter(RawData, path);
+		
+		Instances RawData = pp.bow;
+		String path= args[0].replaceFirst("tweetSentiment.+", "BOW.arff");
+		System.out.println(path);
+		pp.arffWriter(RawData,path);
+		
 		Instances noIdfData = pp.stringToWordVectorFilter(RawData, false);
+		
 		Instances IdfData = pp.stringToWordVectorFilter(RawData, true);
-		noIdfData = pp.quitSparseValues(IdfData);
+		
+		IdfData = pp.quitSparseValues(IdfData);
+		
 		pp.arffWriter(IdfData, path.replace("BagOfWords", "IDF-TF"));
-		RawData = pp.quitSparseValues(noIdfData);
-		pp.arffWriter(RawData, path);
-		pp.separator(kop, args, RawData);
-		// RawData = pp.filterAtributes(RawData);
+		
+		noIdfData = pp.quitSparseValues(noIdfData);
+		
+		pp.arffWriter(noIdfData, path);
+		
+		pp.separator(kop, args,noIdfData);
 
 	}
 }
