@@ -18,6 +18,7 @@ import weka.core.converters.CSVLoader;
 import weka.core.pmml.jaxbbindings.COMPAREFUNCTION;
 import weka.filters.Filter;
 import weka.filters.unsupervised.attribute.Remove;
+import weka.filters.unsupervised.attribute.Standardize;
 import weka.filters.unsupervised.attribute.StringToWordVector;
 import weka.filters.unsupervised.instance.SparseToNonSparse;
 
@@ -140,8 +141,9 @@ public class Preprocessor {
 		InfoGainAttributeEval eval = new InfoGainAttributeEval();
 		Ranker search = new Ranker();
 		data.setClassIndex(0);
-		search.setThreshold(0.00001);
-		search.setNumToSelect(333);
+		search.setGenerateRanking(true);
+		search.setNumToSelect(300);
+		//search.setThreshold(0.00001);
 		filter.setEvaluator(eval);
 		filter.setSearch(search);
 		filter.SelectAttributes(data);
@@ -212,7 +214,7 @@ public class Preprocessor {
 		stringToWordVectorFilter.setInputFormat(rawData);
 		stringToWordVectorFilter.setIDFTransform(tfidf);
 		stringToWordVectorFilter.setTFTransform(tfidf);
-		stringToWordVectorFilter.setWordsToKeep(4000);
+		stringToWordVectorFilter.setWordsToKeep(1000);
 		stringToWordVectorFilter.setOutputWordCounts(true);
 		stringToWordVectorFilter.setLowerCaseTokens(true);
 		Instances newData = Filter.useFilter(rawData, stringToWordVectorFilter);
@@ -226,5 +228,8 @@ public class Preprocessor {
 		r.setInputFormat(test);
 		return Filter.useFilter(test, r);
 	}
+
+	
+	
 
 }
