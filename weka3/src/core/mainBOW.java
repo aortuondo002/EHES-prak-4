@@ -51,7 +51,7 @@ public class mainBOW {
 		pp.arffWriter(pp.train, path.replace("BOW", "train"));
 		pp.arffWriter(pp.dev, path.replace("BOW", "dev"));
 		pp.arffWriter(pp.test, path.replace("BOW", "test"));
-		System.out.println("Azkeneko fitxategiak test.arff dev.arff eta test.arff dira");
+		System.out.println("Azkeneko fitxategiak train.arff dev.arff eta test.arff dira");
 		pp.arffWriter(noIdfData, path);
 		
 	}
